@@ -1,0 +1,28 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project version="4">
+  <component name="CompilerConfiguration">
+    <annotationProcessing>
+      <profile default="true" name="Default" enabled="true" />
+      <profile name="Maven default annotation processors profile" enabled="true">
+        <sourceOutputDir name="target/generated-sources/annotations" />
+        <sourceTestOutputDir name="target/generated-test-sources/test-annotations" />
+        <outputRelativeToContentRoot value="true" />
+        <module name="zcfun-websocket" />
+        <module name="juejin_fk" />
+        <module name="zcfun-core" />
+      </profile>
+    </annotationProcessing>
+    <bytecodeTargetLevel>
+      <module name="websocket" target="17" />
+    </bytecodeTargetLevel>
+  </component>
+  <component name="JavacSettings">
+    <option name="ADDITIONAL_OPTIONS_OVERRIDE">
+      <module name="juejin_fk" options="-parameters" />
+      <module name="websocket" options="-parameters" />
+      <module name="zcfun" options="" />
+      <module name="zcfun-core" options="-parameters" />
+      <module name="zcfun-websocket" options="-parameters" />
+    </option>
+  </component>
+</project>

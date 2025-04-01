@@ -1,0 +1,8 @@
+# debug与否
+debug: true
+# 开启在端口：
+server:
+  port: 8080
+spring:
+  application:
+    name: zcfun-websocket

@@ -1,0 +1,105 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.ddiv.zcfun.domain.mapper.GroupMapper">
+
+    <resultMap id="BaseResultMap" type="com.ddiv.zcfun.domain.po.GroupPO">
+        <id column="group_id" property="groupId"/>
+        <result column="group_name" property="groupName"/>
+        <result column="creator_id" property="creatorId"/>
+        <result column="avatar_url" property="avatarUrl"/>
+        <result column="create_at" property="createAt"/>
+        <result column="updated_at" property="updatedAt"/>
+        <result column="is_delete" property="isDelete"/>
+    </resultMap>
+
+    <!-- 包含用户ID列表的扩展映射 -->
+    <resultMap id="GroupWithUserIdsResultMap" type="com.ddiv.zcfun.domain.po.GroupPO" extends="BaseResultMap">
+        <!-- 通过 collection 收集 user_id 列表 -->
+        <collection property="userIds" ofType="java.lang.Long">
+            <result column="user_id"/>
+        </collection>
+    </resultMap>
+
+    <!-- 单条SQL查询群组及成员ID列表 -->
+    <select id="selectGroupWithUserIds" resultMap="GroupWithUserIdsResultMap">
+        select
+        g.group_id,
+        g.group_name,
+        g.creator_id,
+        g.avatar_url,
+        g.create_at,
+        g.updated_at,
+        gu.user_id
+        from zcfun.`group` g
+        left join zcfun.group_user gu
+        on g.group_id = gu.group_id
+        and gu.is_delete = 0  <!-- 只关联有效成员 -->
+        where g.group_id = #{groupId}
+        and g.is_delete = 0   <!-- 过滤已删除群组 -->
+    </select>
+
+    <!-- 单条sql获取用户参加的所有群组列表 -->
+    <!-- 同时按照加入时间排序 -->
+    <select id="getGroupsByMemberId" resultMap="GroupWithUserIdsResultMap">
+        select g.group_id,
+               g.group_name,
+               g.creator_id,
+               g.avatar_url,
+               g.create_at,
+               g.updated_at,
+               g.is_delete,
+               gu_member.user_id
+        from zcfun.group_user gu
+                 inner join zcfun.`group` g
+                            on gu.group_id = g.group_id
+                                and g.is_delete = 0
+                 left join zcfun.group_user gu_member
+                           on g.group_id = gu_member.group_id
+                               and gu_member.is_delete = 0
+        where gu.user_id = #{userId}
+          and gu.is_delete = 0
+        order by gu_member.create_at desc
+    </select>
+
+    <insert id="updateGroup" parameterType="com.ddiv.zcfun.domain.po.GroupPO">
+        update `group`
+        <set>
+            <if test="groupName!=null">
+                group_name=#{groupName},
+            </if>
+            <if test="creatorId!=null">
+                creator_id=#{creatorId},
+            </if>
+            <if test="avatarUrl!=null">
+                avatar_url=#{avatarUrl},
+            </if>
+        </set>
+        where group_id=#{groupId} and is_delete=0
+    </insert>
+
+    <update id="deleteGroupById" parameterType="long">
+        UPDATE `group`
+        SET is_delete  = 1
+        WHERE group_id = #{groupId}
+          AND is_delete = 0;
+
+        UPDATE group_user
+        SET is_delete  = 1
+        WHERE group_id = #{groupId}
+          AND is_delete = 0;
+
+        UPDATE message
+        SET is_delete  = 1
+        WHERE msg_type = 'GROUP'
+          AND recipient_id = #{groupId}
+          AND is_delete = 0;
+
+        UPDATE message_extra me
+            JOIN message m ON me.msg_id = m.msg_id
+        SET me.is_delete = 1
+        WHERE m.msg_type = 'GROUP'
+          AND m.recipient_id = #{groupId}
+          AND me.is_delete = 0;
+    </update>
+
+</mapper>

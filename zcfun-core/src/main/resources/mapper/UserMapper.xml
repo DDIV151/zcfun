@@ -1,0 +1,20 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.ddiv.zcfun.mapper.UserMapper">
+
+    <insert id="addUser" parameterType="com.ddiv.zcfun.domain.po.UserPO">
+        insert into user(user_id, username, password)
+        values (#{userId}, #{username}, #{password});
+    </insert>
+
+    <delete id="cancelUserAdd" parameterType="com.ddiv.zcfun.domain.po.UserPO">
+        delete
+        from user
+        where user_id = #{userId};
+        delete
+        from user_role
+        where user_id = #{userId};
+    </delete>
+
+</mapper>
