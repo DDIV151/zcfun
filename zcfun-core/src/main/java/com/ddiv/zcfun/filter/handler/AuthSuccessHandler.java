@@ -24,7 +24,7 @@ public class AuthSuccessHandler implements AuthenticationSuccessHandler {
 
     private final RedisTemplate<String, Object> redisTemplate;
     @Value("${jwt.key}")
-    private static String key;
+    private String key;
 
     /**
      * 登录成功处理器，经过验证的用户到达（登录成功）后返回token

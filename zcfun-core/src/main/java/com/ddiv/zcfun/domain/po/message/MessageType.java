@@ -4,5 +4,5 @@ import lombok.Getter;
 
 @Getter
 public enum MessageType {
-    PRIVATE, GROUP
+    PRIVATE, GROUP, HEARTBEAT;
 }

@@ -7,6 +7,7 @@ import org.springframework.web.bind.annotation.ControllerAdvice;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.ResponseBody;
 import org.springframework.web.multipart.MaxUploadSizeExceededException;
+import org.springframework.web.servlet.resource.NoResourceFoundException;
 
 @ControllerAdvice
 @ResponseBody
@@ -30,6 +31,11 @@ public class GlobalExceptionHandler {
         }
         httpServletResponse.setStatus(HttpServletResponse.SC_INTERNAL_SERVER_ERROR);
         return ApiResult.error(500, "服务器异常");
+    }
+
+    @ExceptionHandler(NoResourceFoundException.class)
+    public ApiResult handleNoResourceFoundException() {
+        return ApiResult.error(404, "资源不存在");
     }
 
     @ExceptionHandler(UserRegisterException.class)

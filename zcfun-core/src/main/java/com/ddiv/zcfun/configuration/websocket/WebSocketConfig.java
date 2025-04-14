@@ -1,7 +1,5 @@
-package com.ddiv.zcfun.configuration;
+package com.ddiv.zcfun.configuration.websocket;
 
-import com.ddiv.zcfun.filter.AuthHandshakeInterceptor;
-import com.ddiv.zcfun.filter.handler.WebSocketServerHandler;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.web.socket.WebSocketHandler;
 import org.springframework.web.socket.config.annotation.EnableWebSocket;
@@ -12,7 +10,6 @@ import org.springframework.web.socket.server.HandshakeInterceptor;
 @EnableWebSocket
 @Configuration
 public class WebSocketConfig implements WebSocketConfigurer {
-
 
     private final WebSocketHandler webSocketServerHandler;
     private final HandshakeInterceptor authHandshakeInterceptor;
@@ -25,13 +22,11 @@ public class WebSocketConfig implements WebSocketConfigurer {
     @Override
     public void registerWebSocketHandlers(WebSocketHandlerRegistry registry) {
         registry//消息(连接)处理器
-                .addHandler(webSocketServerHandler, "/ws/im")
+                .addHandler(webSocketServerHandler,"/ws/im","/ws/im/send")
                 //握手前确认
                 .addInterceptors(authHandshakeInterceptor)
                 //允许跨域
-                .setAllowedOrigins("*")
-                .withSockJS();
+                .setAllowedOrigins("*");
+
     }
-
-
 }

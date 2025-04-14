@@ -1,5 +1,5 @@
 # debug与否
-debug: true
+debug: false
 # 开启在端口：
 server:
   port: 8080
@@ -28,21 +28,22 @@ spring:
     redis:
       host: localhost
       port: 6379
-  # 日期格式，但不生效（哭）
+  # jackson设置
   jackson:
-    date-format: yyyy-MM-dd HH:mm:ss
-    time-zone: GMT+8
+    serialization:
+      write-dates-as-timestamps: false
+    deserialization:
+      adjust-dates-to-context-time-zone: true
+    time-zone: Asia/Shanghai
 # mybatis设置
 mybatis:
   configuration:
     use-column-label: true
     map-underscore-to-camel-case: true
   mapper-locations: classpath:mapper/**/*.xml
-
-
 # hutool设置
 snowflake:
   worker-id: 1
   datacenter-id: 1
 jwt:
-  key: "ee044392420d89b41081a267f3672935"
+  key: ee044392420d89b41081a267f3672935

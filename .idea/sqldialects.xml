@@ -2,5 +2,7 @@
 <project version="4">
   <component name="SqlDialectMappings">
     <file url="file://$PROJECT_DIR$/zcfun-core/src/main/java/com/ddiv/zcfun/mapper/GroupMapper.java" dialect="GenericSQL" />
+    <file url="file://$PROJECT_DIR$/zcfun-core/src/main/resources/mapper/GroupMapper.xml" dialect="MySQL" />
+    <file url="file://$PROJECT_DIR$/zcfun-core/src/main/resources/mapper/MessageMapper.xml" dialect="ClickHouse" />
   </component>
 </project>

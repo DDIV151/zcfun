@@ -4,7 +4,6 @@ import com.ddiv.zcfun.filter.JsonLoginFilter;
 import com.ddiv.zcfun.filter.TokenFilter;
 import com.ddiv.zcfun.filter.handler.AuthFailureHandler;
 import com.ddiv.zcfun.filter.handler.AuthSuccessHandler;
-import com.ddiv.zcfun.mapper.UserMapper;
 import com.ddiv.zcfun.service.impl.UserDetailsServiceImpl;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -33,12 +32,6 @@ import org.springframework.security.web.authentication.UsernamePasswordAuthentic
 @EnableMethodSecurity
 public class SecurityConfig {
 
-    private final UserMapper userMapper;
-
-    public SecurityConfig(UserMapper userMapper) {
-        this.userMapper = userMapper;
-    }
-
     @Bean
     public SecurityFilterChain filterChain(HttpSecurity http, TokenFilter tokenFilter, JsonLoginFilter jsonLoginFilter, AuthenticationEntryPoint jwtAuthEntryPoint, AccessDeniedHandler jwtAccessDeniedHandler) throws Exception {
         http
@@ -51,12 +44,12 @@ public class SecurityConfig {
                 .authorizeHttpRequests(auth -> auth
                         .requestMatchers("/user/register").permitAll()
                         .requestMatchers("/user/login").permitAll()
+                        .requestMatchers("/ws/**").permitAll()  // 允许WebSocket连接路径
                         .anyRequest().authenticated()
                 )
                 //登录过滤器
                 .addFilterBefore(tokenFilter, UsernamePasswordAuthenticationFilter.class)
                 .addFilterAfter(jsonLoginFilter, UsernamePasswordAuthenticationFilter.class)
-                //JWT token过滤器
                 // 异常处理
                 .exceptionHandling(ex -> ex
                         .authenticationEntryPoint(jwtAuthEntryPoint)
@@ -99,7 +92,7 @@ public class SecurityConfig {
         //限定
         filter.setFilterProcessesUrl("/user/login");
         filter.setAuthenticationManager(authenticationManager);
-        //成功与失败时分别设置处理器
+        //分别设置成功与失败时处理器
         filter.setAuthenticationSuccessHandler(authSuccessHandler);
         filter.setAuthenticationFailureHandler(authFailureHandler);
         return filter;
@@ -126,8 +119,8 @@ public class SecurityConfig {
     }
 
     @Bean
-    public UserDetailsService userDetailsService() {
-        return new UserDetailsServiceImpl(userMapper);
+    public UserDetailsService userDetailsService(UserDetailsService userDetailsService) {
+        return userDetailsService;
     }
 
     @Bean

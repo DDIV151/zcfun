@@ -16,7 +16,7 @@ import java.util.stream.Collectors;
 @AllArgsConstructor
 @NoArgsConstructor
 public class LoginUser implements UserDetails {
-    UserPO user;
+    private UserPO user;
 
     @Override
     public Collection<? extends GrantedAuthority> getAuthorities() {

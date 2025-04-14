@@ -2,6 +2,7 @@ package com.ddiv.zcfun.controller;
 
 import com.ddiv.zcfun.domain.ApiResult;
 import com.ddiv.zcfun.domain.dto.UserRegisterDTO;
+import com.ddiv.zcfun.domain.po.GroupPO;
 import com.ddiv.zcfun.domain.po.UserPO;
 import com.ddiv.zcfun.service.UserService;
 import org.springframework.security.access.prepost.PreAuthorize;
