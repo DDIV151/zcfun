@@ -14,7 +14,6 @@
     <packaging>pom</packaging>
     <modules>
         <module>zcfun-core</module>
-        <module>zcfun-websocket</module>
     </modules>
     <properties>
         <java.version>17</java.version>

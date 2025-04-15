@@ -1,6 +1,6 @@
 package com.ddiv.zcfun.mapper;
 
-import com.ddiv.zcfun.domain.po.message.MessagePO;
+import com.ddiv.zcfun.domain.po.im.message.MessagePO;
 import org.apache.ibatis.annotations.Mapper;
 
 import java.util.List;

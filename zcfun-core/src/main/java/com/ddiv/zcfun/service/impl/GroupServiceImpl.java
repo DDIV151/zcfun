@@ -1,6 +1,6 @@
 package com.ddiv.zcfun.service.impl;
 
-import com.ddiv.zcfun.domain.po.GroupPO;
+import com.ddiv.zcfun.domain.po.im.GroupPO;
 import com.ddiv.zcfun.exception.UserRegisterException;
 import com.ddiv.zcfun.mapper.GroupMapper;
 import com.ddiv.zcfun.service.GroupService;

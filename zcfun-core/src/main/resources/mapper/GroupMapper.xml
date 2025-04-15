@@ -2,7 +2,7 @@
 <!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
 <mapper namespace="com.ddiv.zcfun.domain.mapper.GroupMapper">
 
-    <resultMap id="BaseResultMap" type="com.ddiv.zcfun.domain.po.GroupPO">
+    <resultMap id="BaseResultMap" type="com.ddiv.zcfun.domain.po.im.GroupPO">
         <id column="group_id" property="groupId"/>
         <result column="group_name" property="groupName"/>
         <result column="creator_id" property="creatorId"/>
@@ -13,7 +13,7 @@
     </resultMap>
 
     <!-- 包含用户ID列表的扩展映射 -->
-    <resultMap id="GroupWithUserIdsResultMap" type="com.ddiv.zcfun.domain.po.GroupPO" extends="BaseResultMap">
+    <resultMap id="GroupWithUserIdsResultMap" type="com.ddiv.zcfun.domain.po.im.GroupPO" extends="BaseResultMap">
         <!-- 通过 collection 收集 user_id 列表 -->
         <collection property="userIds" ofType="java.lang.Long">
             <result column="user_id"/>
@@ -61,7 +61,7 @@
         order by gu_member.create_at desc
     </select>
 
-    <insert id="updateGroup" parameterType="com.ddiv.zcfun.domain.po.GroupPO">
+    <insert id="updateGroup" parameterType="com.ddiv.zcfun.domain.po.im.GroupPO">
         update `group`
         <set>
             <if test="groupName!=null">

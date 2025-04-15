@@ -10,7 +10,7 @@
             VALUES (#{msgId}, #{msgExtra.recallUserId}, #{msgExtra.recallTime}, #{msgExtra.extension});
         </if>
     </insert>
-    <update id="update" parameterType="com.ddiv.zcfun.domain.po.message.MessagePO">
+    <update id="update" parameterType="com.ddiv.zcfun.domain.po.im.message.MessagePO">
         UPDATE zcfun.message
         <set>
             <if test="msgType != null">msg_type = #{msgType},</if>
@@ -30,7 +30,7 @@
         where msg_id = #{msgId}
         and is_delete = 0;
     </update>
-    <select id="findById" resultType="com.ddiv.zcfun.domain.po.message.MessagePO">
+    <select id="findById" resultType="com.ddiv.zcfun.domain.po.im.message.MessagePO">
         SELECT msg_id,
                msg_type,
                msg_content,
@@ -41,7 +41,7 @@
         WHERE msg_id = #{msgId}
           and is_delete = 0;
     </select>
-    <select id="findAll" resultType="com.ddiv.zcfun.domain.po.message.MessagePO">
+    <select id="findAll" resultType="com.ddiv.zcfun.domain.po.im.message.MessagePO">
         SELECT msg_id,
                msg_type,
                msg_content,

@@ -7,13 +7,13 @@
         <sourceOutputDir name="target/generated-sources/annotations" />
         <sourceTestOutputDir name="target/generated-test-sources/test-annotations" />
         <outputRelativeToContentRoot value="true" />
-        <module name="zcfun-websocket" />
         <module name="juejin_fk" />
         <module name="zcfun-core" />
       </profile>
     </annotationProcessing>
     <bytecodeTargetLevel>
       <module name="websocket" target="17" />
+      <module name="zcfun-websocket" target="17" />
     </bytecodeTargetLevel>
   </component>
   <component name="JavacSettings">

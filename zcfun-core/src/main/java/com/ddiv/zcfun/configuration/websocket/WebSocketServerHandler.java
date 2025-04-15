@@ -1,11 +1,12 @@
 package com.ddiv.zcfun.configuration.websocket;
 
-import com.ddiv.zcfun.domain.po.message.MessagePO;
-import com.ddiv.zcfun.domain.po.message.MessageType;
+import com.ddiv.zcfun.domain.po.im.message.MessagePO;
+import com.ddiv.zcfun.domain.po.im.message.MessageType;
 import com.ddiv.zcfun.exception.UserOfflineException;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.springframework.amqp.rabbit.core.RabbitTemplate;
+import org.springframework.context.annotation.Bean;
 import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Component;
@@ -21,7 +22,6 @@ public class WebSocketServerHandler implements WebSocketHandler {
 
     // 在线用户列表，用于存储当前在线用户的会话信息
     private static final ConcurrentHashMap<String, WebSocketSession> onlineUsers = new ConcurrentHashMap<>();
-
     // 用于记录用户最后活跃时间的映射，用于检测用户是否在线（心跳机制）
     private static final ConcurrentHashMap<String, Long> lastActiveTimes = new ConcurrentHashMap<>();
     private static final long HEARTBEAT_TIMEOUT = 60000; // 60秒超时
@@ -57,6 +57,13 @@ public class WebSocketServerHandler implements WebSocketHandler {
         redisTemplate.opsForSet().add("online_users", userId);
     }
 
+    /**
+     * 定时任务，用于检测用户是否在线（心跳机制）。
+     * 遍历在线用户列表，获取每个用户的最后活跃时间。
+     * 如果用户最后活跃时间超过60秒（心跳超时时间），则认为用户已经离线，关闭WebSocket会话，并清理用户信息。
+     *
+     * @throws Exception 如果在处理过程中发生任何异常，将抛出该异常。
+     */
     @Scheduled(fixedRate = HEARTBEAT_INTERVAL)
     public void checkHeartbeat() {
         long currentTime = System.currentTimeMillis();
@@ -96,13 +103,18 @@ public class WebSocketServerHandler implements WebSocketHandler {
             );
 
             // 心跳消息特殊处理
+            /*
+             服务器发送心跳消息：
+             {"type":"HEARTBEAT_ACK"}
+             客户端收到心跳消息而发送：
+             {"msg_type":"HEARTBEAT"}
+            */
             if (messagePO.getMsgType() == MessageType.HEARTBEAT) {
                 String userId = session.getAttributes().get("user_id").toString();
                 lastActiveTimes.put(userId, System.currentTimeMillis());
                 session.sendMessage(new TextMessage("{\"type\":\"HEARTBEAT_ACK\"}"));
                 return;
             }
-
 
             // 从WebSocket会话属性中获取发送者ID，并设置到MessagePO对象中
             Object userIdObj = session.getAttributes().get("user_id");

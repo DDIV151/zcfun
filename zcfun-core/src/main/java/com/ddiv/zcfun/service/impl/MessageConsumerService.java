@@ -2,22 +2,27 @@ package com.ddiv.zcfun.service.impl;
 
 import cn.hutool.core.lang.Snowflake;
 import com.ddiv.zcfun.configuration.websocket.WebSocketServerHandler;
-import com.ddiv.zcfun.domain.po.message.MessagePO;
+import com.ddiv.zcfun.domain.po.im.message.MessagePO;
 import com.ddiv.zcfun.exception.UserOfflineException;
 import com.ddiv.zcfun.mapper.GroupMapper;
 import com.ddiv.zcfun.mapper.MessageMapper;
 import com.ddiv.zcfun.mapper.UserMapper;
+import com.ddiv.zcfun.service.FriendService;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.amqp.rabbit.annotation.RabbitListener;
 import org.springframework.amqp.rabbit.core.RabbitTemplate;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.stereotype.Service;
 
 import java.util.HashSet;
 import java.util.Set;
+import java.util.concurrent.TimeUnit;
 import java.util.stream.Collectors;
 
+@Slf4j
 @Service
 public class MessageConsumerService {
 
@@ -28,8 +33,9 @@ public class MessageConsumerService {
     private final Snowflake snowflake;
     private final MessageMapper messageMapper;
     private final GroupMapper groupMapper;
+    private final FriendService friendService;
 
-    public MessageConsumerService(WebSocketServerHandler webSocketHandler, RedisTemplate<String, Object> redisTemplate, ObjectMapper objectMapper, RabbitTemplate rabbitTemplate, Snowflake snowflake, MessageMapper messageMapper, UserMapper userMapper, GroupMapper groupMapper) {
+    public MessageConsumerService(WebSocketServerHandler webSocketHandler, RedisTemplate<String, Object> redisTemplate, ObjectMapper objectMapper, RabbitTemplate rabbitTemplate, Snowflake snowflake, MessageMapper messageMapper, UserMapper userMapper, GroupMapper groupMapper, @Qualifier("friendService") FriendService friendService) {
         this.webSocketHandler = webSocketHandler;
         this.redisTemplate = redisTemplate;
         this.objectMapper = objectMapper;
@@ -37,6 +43,7 @@ public class MessageConsumerService {
         this.snowflake = snowflake;
         this.messageMapper = messageMapper;
         this.groupMapper = groupMapper;
+        this.friendService = friendService;
     }
 
     private static final String OFFLINE_ROUTING_KEY = "offline.";
@@ -50,8 +57,14 @@ public class MessageConsumerService {
      */
     @RabbitListener(queues = "im.private.queue", concurrency = "5-10")
     public void processPrivateMessage(MessagePO messagePO) {
-        messagePO.setMsgId(snowflake.nextId());
+        long senderId = messagePO.getSenderId();
         long recipientId = messagePO.getRecipientId();
+        // 检查发送者和接收者是否为好友关系
+        if (!friendService.areFriends(senderId, recipientId)) {
+            log.warn("User {} is not your friend", recipientId);
+            return;
+        }
+        messagePO.setMsgId(snowflake.nextId());
         try {
             // 检查接收者是否在线
             if (Boolean.TRUE.equals(redisTemplate.opsForSet().isMember("online_users", recipientId))) {
@@ -62,7 +75,9 @@ public class MessageConsumerService {
                     asyncSaveToMySQL(messagePO);
                 } catch (UserOfflineException e) {
                     rabbitTemplate.convertAndSend("im.main.exchange", OFFLINE_ROUTING_KEY + recipientId, messagePO);
+                    log.error("Failed to send message to user {}", recipientId, e);
                 } catch (JsonProcessingException e) {
+                    log.error("Failed to serialize message", e);
                     throw new RuntimeException("Failed to serialize message", e);
                 }
             } else {
@@ -71,6 +86,7 @@ public class MessageConsumerService {
             }
         } catch (Exception e) {
             // 如果处理过程中发生异常，抛出运行时异常
+            log.error("Failed to process private message", e);
             throw new RuntimeException("Failed to process private message", e);
         }
     }
@@ -104,7 +120,6 @@ public class MessageConsumerService {
                     .collect(Collectors.toSet());
 
             // 计算离线成员：所有成员 - 在线成员 - 发送者
-
             Set<Long> finalOnlineMembers = onlineMembers;
             Set<Long> offlineMembers = allMembers.stream()
                     .filter(memberId -> !finalOnlineMembers.contains(memberId) && !memberId.equals(senderId))
@@ -157,6 +172,7 @@ public class MessageConsumerService {
             // 如果获取到的成员数据不为空，则将其存入Redis缓存中
             if (!members.isEmpty()) {
                 redisTemplate.opsForSet().add(groupKey, members.toArray());
+                redisTemplate.expire(groupKey, 2, TimeUnit.HOURS);
             }
 
             // 返回从数据库中获取的成员数据
@@ -164,7 +180,6 @@ public class MessageConsumerService {
         } else {
             // 如果缓存中存在，则直接从缓存中获取成员数据
             Set<Object> cachedMembers = redisTemplate.opsForSet().members(groupKey);
-
             // 将缓存中的成员数据转换为Long类型并返回
             return cachedMembers.stream()
                     .map(id -> Long.parseLong(id.toString()))
@@ -195,6 +210,7 @@ public class MessageConsumerService {
                     .collect(Collectors.toSet());
             // 将群组成员信息更新到Redis中
             redisTemplate.opsForSet().add(groupKey, onlineIds.toArray());
+            redisTemplate.expire(groupKey, 2, TimeUnit.HOURS);
         } else {
             // 从Redis中获取群组成员信息，并与当前在线用户集合取交集
             onlineIds = redisTemplate.opsForSet().intersect(

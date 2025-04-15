@@ -1,6 +1,6 @@
 package com.ddiv.zcfun.service;
 
-import com.ddiv.zcfun.domain.po.GroupPO;
+import com.ddiv.zcfun.domain.po.im.GroupPO;
 import org.springframework.stereotype.Service;
 
 import java.util.List;

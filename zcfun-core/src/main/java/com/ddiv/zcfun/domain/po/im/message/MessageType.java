@@ -1,4 +1,4 @@
-package com.ddiv.zcfun.domain.po.message;
+package com.ddiv.zcfun.domain.po.im.message;
 
 import lombok.Getter;
 

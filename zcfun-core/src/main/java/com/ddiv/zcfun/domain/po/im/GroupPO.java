@@ -1,4 +1,4 @@
-package com.ddiv.zcfun.domain.po;
+package com.ddiv.zcfun.domain.po.im;
 
 import lombok.Data;
 

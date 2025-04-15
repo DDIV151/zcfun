@@ -1,6 +1,6 @@
 package com.ddiv.zcfun.mapper;
 
-import com.ddiv.zcfun.domain.po.GroupPO;
+import com.ddiv.zcfun.domain.po.im.GroupPO;
 import org.apache.ibatis.annotations.Insert;
 import org.apache.ibatis.annotations.Mapper;
 import org.apache.ibatis.annotations.Param;

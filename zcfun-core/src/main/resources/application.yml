@@ -3,14 +3,18 @@ debug: false
 # 开启在端口：
 server:
   port: 8080
+file:
+  upload:
+    path: D:/zcfun-data/
 spring:
   application:
     name: zcfun
   # 设置文件上传限制
   servlet:
     multipart:
-      max-file-size: 2GB
-      max-request-size: 2GB
+      max-file-size: 444MB
+      max-request-size: 444MB
+      resolve-lazily: true
   # mysql设置
   datasource:
     url: jdbc:mysql://localhost:3306/zcfun

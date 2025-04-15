@@ -4,7 +4,7 @@ import cn.hutool.json.JSONUtil;
 import cn.hutool.jwt.JWT;
 import cn.hutool.jwt.JWTUtil;
 import com.ddiv.zcfun.domain.ApiResult;
-import com.ddiv.zcfun.domain.po.message.MessagePO;
+import com.ddiv.zcfun.domain.po.im.message.MessagePO;
 import org.junit.jupiter.api.Test;
 import org.springframework.amqp.rabbit.core.RabbitTemplate;
 import org.springframework.beans.factory.annotation.Autowired;

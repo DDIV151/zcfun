@@ -2,7 +2,7 @@ package com.ddiv.zcfun.controller.im;
 
 import com.ddiv.zcfun.domain.ApiResult;
 import com.ddiv.zcfun.domain.LoginUser;
-import com.ddiv.zcfun.domain.po.GroupPO;
+import com.ddiv.zcfun.domain.po.im.GroupPO;
 import com.ddiv.zcfun.service.GroupService;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
