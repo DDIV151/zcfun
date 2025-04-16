@@ -3,6 +3,7 @@ package com.ddiv.zcfun.service;
 import com.ddiv.zcfun.domain.po.im.GroupPO;
 
 import java.util.List;
+import java.util.Set;
 
 public interface GroupService {
 
@@ -19,4 +20,8 @@ public interface GroupService {
     void addUserToGroup(long groupId, long userId);
 
     void removeUserFromGroup(long groupId, long userId);
+
+    public Set<Long> getAllGroupMembers(Long groupId);
+
+    public Set<Long> getGroupOnlineMembers(Long groupId);
 }

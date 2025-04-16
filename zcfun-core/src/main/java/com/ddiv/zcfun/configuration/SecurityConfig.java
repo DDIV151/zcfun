@@ -19,7 +19,6 @@ import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
 import org.springframework.security.config.annotation.web.configurers.AbstractHttpConfigurer;
 import org.springframework.security.config.http.SessionCreationPolicy;
-import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.web.AuthenticationEntryPoint;
@@ -100,8 +99,8 @@ public class SecurityConfig {
 
     //token验证（身份验证过滤器）
     @Bean
-    TokenFilter tokenFilter(RedisTemplate<String, Object> redisTemplate, UserDetailsServiceImpl userDetailsServiceImpl,AuthenticationEntryPoint jwtAuthEntryPoint) {
-        return new TokenFilter(userDetailsServiceImpl, redisTemplate,jwtAuthEntryPoint);
+    TokenFilter tokenFilter(RedisTemplate<String, Object> redisTemplate, AuthenticationEntryPoint jwtAuthEntryPoint, UserDetailsServiceImpl userDetailsService) {
+        return new TokenFilter(userDetailsService, redisTemplate, jwtAuthEntryPoint);
     }
 
     //处理用户形象的获得，下面都是
@@ -116,11 +115,6 @@ public class SecurityConfig {
     @Bean
     public AuthenticationManager authenticationManager(AuthenticationProvider daoAuthenticationProvider) {
         return new ProviderManager(daoAuthenticationProvider);
-    }
-
-    @Bean
-    public UserDetailsService userDetailsService(UserDetailsService userDetailsService) {
-        return userDetailsService;
     }
 
     @Bean

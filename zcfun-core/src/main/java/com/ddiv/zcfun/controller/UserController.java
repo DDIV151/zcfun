@@ -4,7 +4,6 @@ import com.ddiv.zcfun.domain.ApiResult;
 import com.ddiv.zcfun.domain.dto.ChangePasswordDTO;
 import com.ddiv.zcfun.domain.dto.UserRegisterDTO;
 import com.ddiv.zcfun.domain.po.UserPO;
-import com.ddiv.zcfun.service.FriendService;
 import com.ddiv.zcfun.service.UserService;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
@@ -14,11 +13,10 @@ import org.springframework.web.bind.annotation.*;
 public class UserController {
 
     private final UserService userService;
-    private final FriendService friendService;
 
-    public UserController(UserService userService, FriendService friendService) {
+    public UserController(UserService userService) {
         this.userService = userService;
-        this.friendService = friendService;
+
     }
 
     /**
@@ -51,52 +49,10 @@ public class UserController {
      */
     @GetMapping("/{user_id}")
     public ApiResult getInfo(@PathVariable("user_id") long id, @RequestParam(required = false, value = "username") String username) {
-        if (username != null)
+        if (username != null && !username.isEmpty())
             return ApiResult.success(userService.getUserInfoByUsername(username));
         UserPO user = userService.getUserInfoById(id);
         return ApiResult.success(user);
-    }
-
-    /**
-     * 检查用户是否屏蔽了另一个用户
-     *
-     * @param userId    用户ID
-     * @param blockedId 被屏蔽的用户ID
-     * @return ApiResult
-     */
-    @GetMapping("/block/check")
-    @PreAuthorize("hasRole('ADMIN') or authentication.principal.user.userId==#userId")
-    public ApiResult checkBlock(@RequestParam("user_id") long userId, @RequestParam("blocked_id") long blockedId) {
-        boolean isBlocked = friendService.isBlocked(userId, blockedId);
-        return ApiResult.success(isBlocked);
-    }
-
-    /**
-     * 添加屏蔽关系
-     *
-     * @param userId    用户ID
-     * @param blockedId 被屏蔽的用户ID
-     * @return ApiResult
-     */
-    @PostMapping("/block")
-    @PreAuthorize("hasRole('ADMIN') or authentication.principal.user.userId == #userId")
-    public ApiResult addBlock(@RequestParam("user_id") long userId, @RequestParam("blocked_id") long blockedId) {
-        friendService.blockUser(userId, blockedId);
-        return ApiResult.success();
-    }
-
-    /**
-     * 取消屏蔽关系
-     *
-     * @param userId    用户ID
-     * @param blockedId 被屏蔽的用户ID
-     * @return ApiResult
-     */
-    @DeleteMapping("/block")
-    @PreAuthorize("hasRole('ADMIN') or authentication.principal.user.userId == #userId")
-    public ApiResult removeBlock(@RequestParam("user_id") long userId, @RequestParam("blocked_id") long blockedId) {
-        friendService.unblockUser(userId, blockedId);
-        return ApiResult.success();
     }
 
 }

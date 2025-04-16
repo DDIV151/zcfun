@@ -6,6 +6,9 @@ server:
 file:
   upload:
     path: D:/zcfun-data/
+im:
+  keys:
+    online-user-set: online_users
 spring:
   application:
     name: zcfun

@@ -98,7 +98,7 @@ public class UserServiceImpl implements UserService {
         if (username == null || username.isEmpty())
             throw new IllegalArgumentException("用户名不能为空");
         try {
-            evictUserPOCache(userMapper.findByUserId(id).getUsername());
+            evictUserCache(userMapper.findByUserId(id).getUsername());
             userMapper.updateUsername(id, username);
         } catch (org.springframework.dao.DuplicateKeyException e) {
             throw new UserRegisterException("用户名重复");
@@ -113,10 +113,11 @@ public class UserServiceImpl implements UserService {
         if (!passwordEncoder.matches(password.getOldPassword(), userPO.getPassword()))
             throw new IllegalArgumentException("旧密码错误");
         userMapper.updatePassword(id, passwordEncoder.encode(password.getNewPassword()));
-        evictUserPOCache(userPO.getUsername());
+        evictUserCache(userPO.getUsername());
     }
 
-    public void evictUserPOCache(String username) {
+    public void evictUserCache(String username) {
         redisTemplate.delete("userPO:" + username);
+        redisTemplate.delete("user:token:" + username);
     }
 }

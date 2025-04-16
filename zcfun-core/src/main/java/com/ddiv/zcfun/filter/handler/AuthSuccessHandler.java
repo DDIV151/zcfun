@@ -17,6 +17,7 @@ import org.springframework.stereotype.Component;
 import java.io.IOException;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.concurrent.TimeUnit;
 
 @Component
 @RequiredArgsConstructor
@@ -42,15 +43,15 @@ public class AuthSuccessHandler implements AuthenticationSuccessHandler {
      */
     @Override
     public void onAuthenticationSuccess(HttpServletRequest request, HttpServletResponse response, Authentication authentication) throws IOException, ServletException {
-        //生成token
+        // 生成token
         LoginUser user = (LoginUser) authentication.getPrincipal();
         Map<String, Object> payload = new HashMap<>();
         payload.put("user_id", user.getUser().getUserId());
         payload.put("username", user.getUsername());
         String token = JWTUtil.createToken(payload, key.getBytes());
-        //token存入redis
-        redisTemplate.opsForValue().set("user:token:" + user.getUsername(), token);
-        //响应json
+        // token存入redis,有效期3天
+        redisTemplate.opsForValue().set("user:token:" + user.getUsername(), token, 3, TimeUnit.DAYS);
+        // 响应json
         response.setContentType("application/json;charset=UTF-8");
         try {
             response.getWriter().write(

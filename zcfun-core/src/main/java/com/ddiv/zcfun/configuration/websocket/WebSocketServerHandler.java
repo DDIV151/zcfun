@@ -2,7 +2,9 @@ package com.ddiv.zcfun.configuration.websocket;
 
 import com.ddiv.zcfun.domain.po.im.message.MessagePO;
 import com.ddiv.zcfun.domain.po.im.message.MessageType;
+import com.ddiv.zcfun.domain.po.im.message.OfflineMessagePO;
 import com.ddiv.zcfun.exception.UserOfflineException;
+import com.ddiv.zcfun.mapper.MessageMapper;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.springframework.amqp.rabbit.core.RabbitTemplate;
@@ -14,6 +16,7 @@ import org.springframework.web.socket.*;
 import java.io.IOException;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
+import java.util.List;
 import java.util.concurrent.ConcurrentHashMap;
 
 @Component
@@ -29,11 +32,13 @@ public class WebSocketServerHandler implements WebSocketHandler {
     private final ObjectMapper objectMapper;
     private final RedisTemplate<String, Object> redisTemplate;
     private final RabbitTemplate rabbitTemplate;
+    private final MessageMapper messageMapper;
 
-    public WebSocketServerHandler(RedisTemplate<String, Object> redisTemplate, RabbitTemplate rabbitTemplate, ObjectMapper objectMapper) {
+    public WebSocketServerHandler(RedisTemplate<String, Object> redisTemplate, RabbitTemplate rabbitTemplate, ObjectMapper objectMapper, MessageMapper messageMapper) {
         this.redisTemplate = redisTemplate;
         this.rabbitTemplate = rabbitTemplate;
         this.objectMapper = objectMapper;
+        this.messageMapper = messageMapper;
     }
 
     /**
@@ -52,7 +57,17 @@ public class WebSocketServerHandler implements WebSocketHandler {
         // 记录用户最后活跃时间（心跳处理）
         lastActiveTimes.put(userId.toString(), System.currentTimeMillis());
         // 将用户ID添加到Redis的在线用户集合中
-        redisTemplate.opsForSet().add("online_users", userId);
+        redisTemplate.opsForSet().add("online_users", userId.toString());
+
+        List<OfflineMessagePO> offlineMessages = messageMapper.selectOfflineMessage(Long.parseLong(userId.toString()));
+        offlineMessages.forEach(msg -> {
+            try {
+                session.sendMessage(new TextMessage(msg.getContent()));
+                messageMapper.markAsDelivered(msg.getId());
+            } catch (IOException e) {
+                throw new RuntimeException(e);
+            }
+        });
     }
 
     /**
@@ -130,17 +145,11 @@ public class WebSocketServerHandler implements WebSocketHandler {
                 session.sendMessage(new TextMessage("消息类型缺失"));
                 return;
             }
-            String routingKey = msgType == MessageType.PRIVATE ?
-                    "private." + messagePO.getRecipientId() :
-                    "group." + messagePO.getRecipientId();
-
-            // 将消息发送到RabbitMQ主交换机，使用指定的路由键
-            rabbitTemplate.convertAndSend(
-                    "im.main.exchange",
-                    routingKey,
-                    messagePO
-            );
-
+            // 将消息发送到RabbitMQ交换机，使用指定的路由键
+            if (msgType == MessageType.PRIVATE) {
+                rabbitTemplate.convertAndSend("im.main.exchange", "private." + messagePO.getRecipientId(), messagePO);
+            } else if (msgType == MessageType.GROUP)
+                rabbitTemplate.convertAndSend("im.group.exchange", "group." + messagePO.getRecipientId(), messagePO);
         } catch (JsonProcessingException e) {
             session.sendMessage(new TextMessage("消息格式错误"));
         } catch (NumberFormatException e) {

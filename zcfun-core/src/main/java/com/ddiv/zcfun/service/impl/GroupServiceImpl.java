@@ -7,12 +7,16 @@ import com.ddiv.zcfun.service.GroupService;
 import com.ddiv.zcfun.service.UserService;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
 import java.util.concurrent.TimeUnit;
+import java.util.stream.Collectors;
 
 @Service("groupService")
 public class GroupServiceImpl implements GroupService {
@@ -20,7 +24,12 @@ public class GroupServiceImpl implements GroupService {
     private final GroupMapper groupMapper; // 群组数据访问对象
     private final UserService userService; // 用户服务
     private final RedisTemplate<String, Object> redisTemplate; // Redis缓存模板
+
     private static final String GROUP_CACHE_KEY = "group:%d"; // 群组缓存键格式
+    private static final String GROUP_MEMBERS_CACHE_KEY = "group:members:%d"; // 群组成员缓存键
+
+    @Value("${im.keys.online-user-set}")
+    private String ONLINE_USER_SET_KEY; // 在线用户集合的Redis键
 
     public GroupServiceImpl(GroupMapper groupMapper, UserService userService, RedisTemplate<String, Object> redisTemplate) {
         this.groupMapper = groupMapper;
@@ -54,7 +63,6 @@ public class GroupServiceImpl implements GroupService {
         if (groupMapper.updateGroup(group) == 0) {
             throw new UserRegisterException("群组更新失败");
         }
-        evictGroupCache(group.getGroupId()); // 清除旧缓存
         cacheGroup(group); // 更新后重新缓存
     }
 
@@ -66,6 +74,7 @@ public class GroupServiceImpl implements GroupService {
             throw new UserRegisterException("用户已加入群组");
         groupMapper.insertUserToGroup(groupId, userId);
         evictGroupCache(groupId); // 成员变动，清除群组缓存
+        evictGroupMembersCache(groupId);
     }
 
     @Override
@@ -78,6 +87,7 @@ public class GroupServiceImpl implements GroupService {
             throw new UserRegisterException("用户不在群组中或移除失败");
         }
         evictGroupCache(groupId); // 成员变动，清除缓存
+        evictGroupCache(userId);
     }
 
     @Transactional
@@ -87,13 +97,59 @@ public class GroupServiceImpl implements GroupService {
         groupMapper.deleteGroupUserById(groupId);
         groupMapper.deleteGroupMessageById(groupId);
         groupMapper.deleteGroupMessageExtraById(groupId);
+        // 清除群组缓存
         evictGroupCache(groupId);
+        evictGroupMembersCache(groupId);
     }
 
     @Override
     public List<GroupPO> getGroupsByMemberId(long userId) {
         checkUserExists(userId);
         return groupMapper.getGroupsByMemberId(userId); // 获取用户所在的群组列表
+    }
+
+    @Override
+    public Set<Long> getAllGroupMembers(Long groupId) {
+        String groupKey = String.format(GROUP_MEMBERS_CACHE_KEY, groupId);
+        // 检查缓存是否存在
+        if (Boolean.FALSE.equals(redisTemplate.hasKey(groupKey))) {
+            GroupPO group = getGroupById(groupId);
+            if (group == null) {
+                return new HashSet<>();
+            }
+            Set<Long> members = new HashSet<>(group.getUserIds());
+            if (!members.isEmpty()) {
+                // 转换为String数组存入Redis Set
+                String[] memberArray = members.stream()
+                        .map(String::valueOf)
+                        .toArray(String[]::new);
+                redisTemplate.opsForSet().add(groupKey, memberArray);
+                redisTemplate.expire(groupKey, 2, TimeUnit.HOURS);
+            }
+            return members;
+        } else {
+            Set<Object> cachedMembers = redisTemplate.opsForSet().members(groupKey);
+            return cachedMembers.stream()
+                    .map(id -> Long.parseLong(id.toString()))
+                    .collect(Collectors.toSet());
+        }
+    }
+
+    @Override
+    public Set<Long> getGroupOnlineMembers(Long groupId) {
+        String groupKey = String.format(GROUP_MEMBERS_CACHE_KEY, groupId);
+        // 如果缓存不存在，先填充数据
+        if (Boolean.FALSE.equals(redisTemplate.hasKey(groupKey))) {
+            getAllGroupMembers(groupId);
+        }
+        // 计算在线成员（群组成员与在线用户交集）
+        Set<Object> onlineIds = redisTemplate.opsForSet().intersect(
+                groupKey,
+                ONLINE_USER_SET_KEY
+        );
+        return onlineIds.stream()
+                .map(id -> Long.parseLong(id.toString()))
+                .collect(Collectors.toSet());
     }
 
     private GroupPO getGroupById(long groupId) {
@@ -131,4 +187,13 @@ public class GroupServiceImpl implements GroupService {
         String cacheKey = String.format(GROUP_CACHE_KEY, groupId);
         redisTemplate.delete(cacheKey); // 清除群组缓存
     }
+
+    /**
+     * 清除群组成员的Redis缓存
+     */
+    private void evictGroupMembersCache(Long groupId) {
+        String groupKey = String.format(GROUP_MEMBERS_CACHE_KEY, groupId);
+        redisTemplate.delete(groupKey);
+    }
+
 }

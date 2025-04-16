@@ -71,18 +71,8 @@ public class TokenFilter extends OncePerRequestFilter {
                 filterChain.doFilter(request, response);
                 return;
             }
-            // 如果Redis中不存在该Token，则验证Token的有效性
-            if (JWTUtil.verify(token, keyBytes)) {
-                // 如果Token有效，则加载用户信息并设置认证上下文，同时将Token存入Redis
-                UserDetails user = userDetailsServiceImpl.loadUserByUsername(username);
-                authentication =
-                        new UsernamePasswordAuthenticationToken(
-                                user, user.getPassword(), user.getAuthorities()
-                        );
-                redisTemplate.opsForValue().set(redisKey, token);
-                SecurityContextHolder.getContext().setAuthentication(authentication);
-                filterChain.doFilter(request, response);
-            } else {
+            // 如果Redis中不存在该Token，则token过期（用户信息更新或超时）
+            else {
                 // 如果Token无效，则抛出BadCredentialsException异常
                 throw new BadCredentialsException("Token无效");
             }
@@ -93,6 +83,7 @@ public class TokenFilter extends OncePerRequestFilter {
         } catch (Exception e) {
             // 处理其他异常，清除安全上下文
             SecurityContextHolder.clearContext();
+            throw new BadCredentialsException("Token无效");
         }
     }
 }

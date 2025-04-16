@@ -20,7 +20,7 @@ public interface UserMapper {
     void cancelUserAdd(UserPO userPO);
 
     @Select("select user_id,username,password,avatar_url,create_at,updated_at from user where user_id=#{userId} and is_delete=0")
-    UserPO findByUserId(long id);
+    UserPO findByUserId(long userId);
 
     @Select("select role from user_role where user_id=#{id} and is_delete=0")
     List<UserRole> findUserRoleByUserId(long id);

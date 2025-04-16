@@ -12,6 +12,7 @@ import org.springframework.stereotype.Service;
 
 import java.util.List;
 import java.util.concurrent.TimeUnit;
+import java.util.stream.Collectors;
 
 /**
  * 好友服务实现类，实际实现的是单向关注关系。
@@ -31,9 +32,9 @@ public class FriendServiceImpl implements FriendService {
     /**
      * 构造函数，注入依赖。
      *
-     * @param friendMapper    好友关系数据访问对象
-     * @param redisTemplate   Redis缓存操作对象
-     * @param userService     用户服务对象
+     * @param friendMapper  好友关系数据访问对象
+     * @param redisTemplate Redis缓存操作对象
+     * @param userService   用户服务对象
      */
     public FriendServiceImpl(FriendMapper friendMapper, RedisTemplate<String, Object> redisTemplate, UserService userService) {
         this.friendMapper = friendMapper;
@@ -98,7 +99,7 @@ public class FriendServiceImpl implements FriendService {
             }
             // 查询数据库
             boolean exists = friendMapper.existsBlock(userId, blockedId) > 0;
-            evictBlockCache(userId, blockedId);
+            updateBlockCache(userId, blockedId, exists);
             return exists;
         } catch (Exception e) {
             log.error("Error occurred while checking block status: {}", e.getMessage());
@@ -174,7 +175,18 @@ public class FriendServiceImpl implements FriendService {
      */
     @Override
     public List<FriendPO> getFriends(long userId) {
-        return friendMapper.getFriends(userId);
+        List<FriendPO> friends = friendMapper.getFriends(userId);
+        return friends.stream()
+                .map(friend -> {
+                    if (friend.getUserId() != userId) {
+                        // 如果当前对象的userId不等于传入的userId，则交换userId和friendId
+                        long temp = friend.getUserId();
+                        friend.setUserId(friend.getFriendId());
+                        friend.setFriendId(temp);
+                    }
+                    return friend;
+                })
+                .collect(Collectors.toList());
     }
 
     /**

@@ -75,16 +75,6 @@ public class AuthHandshakeInterceptor implements HandshakeInterceptor {
                 attributes.put("username", username);
                 attributes.put("user_id", userId);
                 return true;
-            } else {
-                try {
-                    JWTUtil.verify(token, key.getBytes());
-                    redisTemplate.opsForValue().set(redisKey, token);
-                    attributes.put("token", token);
-                    attributes.put("username", username);
-                    attributes.put("userId", userId);
-                } catch (Exception e) {
-                    throw new AuthenticationCredentialsNotFoundException("无效凭证");
-                }
             }
         }
         throw new AuthenticationCredentialsNotFoundException("无效凭证");
