@@ -8,13 +8,4 @@
         values (#{userId}, #{username}, #{password});
     </insert>
 
-    <delete id="cancelUserAdd" parameterType="com.ddiv.zcfun.domain.po.UserPO">
-        delete
-        from user
-        where user_id = #{userId};
-        delete
-        from user_role
-        where user_id = #{userId};
-    </delete>
-
 </mapper>

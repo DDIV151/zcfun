@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
-<mapper namespace="com.ddiv.zcfun.domain.mapper.GroupMapper">
+<mapper namespace="com.ddiv.zcfun.mapper.GroupMapper">
 
     <resultMap id="BaseResultMap" type="com.ddiv.zcfun.domain.po.im.GroupPO">
         <id column="group_id" property="groupId"/>
@@ -21,7 +21,7 @@
     </resultMap>
 
     <!-- 单条SQL查询群组及成员ID列表 -->
-    <select id="selectGroupWithUserIds" resultMap="GroupWithUserIdsResultMap">
+    <select id="getGroupById" resultMap="GroupWithUserIdsResultMap">
         select
         g.group_id,
         g.group_name,
@@ -79,21 +79,27 @@
 
     <update id="deleteGroupById" parameterType="long">
         UPDATE `group`
-        SET is_delete  = 1
+        SET is_delete = 1
         WHERE group_id = #{groupId}
           AND is_delete = 0;
+    </update>
 
+    <update id="deleteGroupUserById" parameterType="long">
         UPDATE group_user
-        SET is_delete  = 1
+        SET is_delete = 1
         WHERE group_id = #{groupId}
           AND is_delete = 0;
+    </update>
 
+    <update id="deleteGroupMessageById" parameterType="long">
         UPDATE message
-        SET is_delete  = 1
+        SET is_delete = 1
         WHERE msg_type = 'GROUP'
           AND recipient_id = #{groupId}
           AND is_delete = 0;
+    </update>
 
+    <update id="deleteGroupMessageExtraById" parameterType="long">
         UPDATE message_extra me
             JOIN message m ON me.msg_id = m.msg_id
         SET me.is_delete = 1
@@ -101,5 +107,6 @@
           AND m.recipient_id = #{groupId}
           AND me.is_delete = 0;
     </update>
+
 
 </mapper>

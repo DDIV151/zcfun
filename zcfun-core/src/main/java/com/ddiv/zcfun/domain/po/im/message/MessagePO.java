@@ -10,7 +10,7 @@ import java.time.LocalDateTime;
 @Data
 public class MessagePO {
 
-    @JsonProperty(value = "msg_id", access = JsonProperty.Access.WRITE_ONLY)
+    @JsonProperty(value = "msg_id")
     private long msgId;
     @JsonProperty(value = "msg_type")
     private MessageType msgType;

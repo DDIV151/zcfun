@@ -56,7 +56,7 @@ public class TokenFilter extends OncePerRequestFilter {
             JWT jwt = JWTUtil.parseToken(token);
             String username = (String) jwt.getPayload().getClaim("username");
 
-            // 检查Redis中是否存在该Token，实现单设备登录功能
+            // 检查Redis中是否存在该Token
             String redisKey = "user:token:" + username;
             String storedToken = (String) redisTemplate.opsForValue().get(redisKey);
             UsernamePasswordAuthenticationToken authentication;

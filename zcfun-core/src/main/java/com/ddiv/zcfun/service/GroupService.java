@@ -1,11 +1,9 @@
 package com.ddiv.zcfun.service;
 
 import com.ddiv.zcfun.domain.po.im.GroupPO;
-import org.springframework.stereotype.Service;
 
 import java.util.List;
 
-@Service
 public interface GroupService {
 
     void deleteGroup(long groupId);
@@ -15,4 +13,10 @@ public interface GroupService {
     boolean isGroupOwner(long userId, long groupId);
 
     void insertGroup(GroupPO group);
+
+    void updateGroup(GroupPO group);
+
+    void addUserToGroup(long groupId, long userId);
+
+    void removeUserFromGroup(long groupId, long userId);
 }

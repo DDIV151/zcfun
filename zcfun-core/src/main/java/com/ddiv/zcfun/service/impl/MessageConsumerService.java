@@ -6,14 +6,12 @@ import com.ddiv.zcfun.domain.po.im.message.MessagePO;
 import com.ddiv.zcfun.exception.UserOfflineException;
 import com.ddiv.zcfun.mapper.GroupMapper;
 import com.ddiv.zcfun.mapper.MessageMapper;
-import com.ddiv.zcfun.mapper.UserMapper;
 import com.ddiv.zcfun.service.FriendService;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.amqp.rabbit.annotation.RabbitListener;
 import org.springframework.amqp.rabbit.core.RabbitTemplate;
-import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.stereotype.Service;
 
@@ -35,7 +33,10 @@ public class MessageConsumerService {
     private final GroupMapper groupMapper;
     private final FriendService friendService;
 
-    public MessageConsumerService(WebSocketServerHandler webSocketHandler, RedisTemplate<String, Object> redisTemplate, ObjectMapper objectMapper, RabbitTemplate rabbitTemplate, Snowflake snowflake, MessageMapper messageMapper, UserMapper userMapper, GroupMapper groupMapper, @Qualifier("friendService") FriendService friendService) {
+    public MessageConsumerService(WebSocketServerHandler webSocketHandler, RedisTemplate<String, Object> redisTemplate,
+                                  ObjectMapper objectMapper, RabbitTemplate rabbitTemplate,
+                                  Snowflake snowflake, MessageMapper messageMapper,
+                                  GroupMapper groupMapper, FriendService friendService) {
         this.webSocketHandler = webSocketHandler;
         this.redisTemplate = redisTemplate;
         this.objectMapper = objectMapper;
@@ -59,9 +60,9 @@ public class MessageConsumerService {
     public void processPrivateMessage(MessagePO messagePO) {
         long senderId = messagePO.getSenderId();
         long recipientId = messagePO.getRecipientId();
-        // 检查发送者和接收者是否为好友关系
-        if (!friendService.areFriends(senderId, recipientId)) {
-            log.warn("User {} is not your friend", recipientId);
+        // 检查发送者和接收者是否为好友关系 和 是否被屏蔽
+        if (!friendService.areFriends(senderId, recipientId) && !friendService.isBlocked(senderId, recipientId)) {
+            log.warn("User {} is not {}'s friend or he/she is blocked", recipientId, senderId);
             return;
         }
         messagePO.setMsgId(snowflake.nextId());

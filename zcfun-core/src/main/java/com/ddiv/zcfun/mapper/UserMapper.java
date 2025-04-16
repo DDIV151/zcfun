@@ -2,12 +2,8 @@ package com.ddiv.zcfun.mapper;
 
 import com.ddiv.zcfun.domain.po.UserPO;
 import com.ddiv.zcfun.domain.po.UserRole;
-import org.apache.ibatis.annotations.Insert;
-import org.apache.ibatis.annotations.Mapper;
-import org.apache.ibatis.annotations.Select;
-import org.apache.ibatis.annotations.Update;
+import org.apache.ibatis.annotations.*;
 
-import java.util.Collection;
 import java.util.List;
 
 @Mapper
@@ -29,11 +25,10 @@ public interface UserMapper {
     @Select("select role from user_role where user_id=#{id} and is_delete=0")
     List<UserRole> findUserRoleByUserId(long id);
 
-    @Insert("insert into video_star(user_id,video_id) values(#{userId},#{videoId})")
-    void addVideoStar(long userId, long videoId);
+    @Update("update user set username=#{username} where user_id=#{id} and is_delete=0")
+    int updateUsername(long id, String username);
 
-    @Update("update video_star set is_delete=1-is_delete where user_id=#{userId} and video_id=#{videoId}")
-    void updateVideoStar(long userId, long videoId);
+    @Update("update user set password=#{encode} where user_id=#{id} and is_delete=0")
+    int updatePassword(long id, String encode);
 
-    void addVideo();
 }

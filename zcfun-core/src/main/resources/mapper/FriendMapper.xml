@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
 <mapper namespace="com.ddiv.zcfun.domain.mapper.FriendMapper">
-    <resultMap id="BaseResultMap" type="com.ddiv.zcfun.domain.po.FriendPO">
+    <resultMap id="BaseResultMap" type="com.ddiv.zcfun.domain.po.im.FriendPO">
         <id column="user_id" jdbcType="BIGINT" property="userId"/>
         <id column="friend_id" jdbcType="BIGINT" property="friendId"/>
         <result column="create_at" jdbcType="TIMESTAMP" property="createAt"/>

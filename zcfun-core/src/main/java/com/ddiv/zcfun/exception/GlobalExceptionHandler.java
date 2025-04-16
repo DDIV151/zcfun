@@ -2,6 +2,7 @@ package com.ddiv.zcfun.exception;
 
 import com.ddiv.zcfun.domain.ApiResult;
 import jakarta.servlet.http.HttpServletResponse;
+import org.springframework.http.converter.HttpMessageNotReadableException;
 import org.springframework.security.access.AccessDeniedException;
 import org.springframework.web.bind.annotation.ControllerAdvice;
 import org.springframework.web.bind.annotation.ExceptionHandler;
@@ -33,6 +34,11 @@ public class GlobalExceptionHandler {
         return ApiResult.error(500, "服务器异常");
     }
 
+    @ExceptionHandler(HttpMessageNotReadableException.class)
+    public ApiResult handleHttpMessageNotReadableException() {
+        return ApiResult.error(400, "请求参数错误");
+    }
+
     @ExceptionHandler(NoResourceFoundException.class)
     public ApiResult handleNoResourceFoundException() {
         return ApiResult.error(404, "资源不存在");
@@ -41,5 +47,10 @@ public class GlobalExceptionHandler {
     @ExceptionHandler(UserRegisterException.class)
     public ApiResult handleUserRegisterException(UserRegisterException e) {
         return ApiResult.error(401, e.getMessage());
+    }
+
+    @ExceptionHandler(IllegalArgumentException.class)
+    public ApiResult handleIllegalArgumentException(IllegalArgumentException e) {
+        return ApiResult.error(400, e.getMessage());
     }
 }

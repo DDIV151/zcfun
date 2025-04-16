@@ -10,6 +10,7 @@ import org.springframework.amqp.rabbit.core.RabbitTemplate;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.data.redis.core.RedisTemplate;
+import org.springframework.security.crypto.password.PasswordEncoder;
 
 import static org.junit.jupiter.api.Assertions.assertDoesNotThrow;
 
@@ -21,6 +22,8 @@ public class UtilTest {
     private final RabbitTemplate rabbitTemplate;
     @Autowired
     private RedisTemplate<String, Object> redisTemplate;
+    @Autowired
+    private PasswordEncoder passwordEncoder;
 
     @Autowired
     public UtilTest(RabbitTemplate rabbitTemplate) {
@@ -50,6 +53,7 @@ public class UtilTest {
         redisTemplate.opsForHash().put("test", "payload", new MessagePO());
         System.out.println(redisTemplate.opsForHash().get("test", "payload"));
         redisTemplate.opsForHash().delete("test", "status", "payload");
+        System.out.println(passwordEncoder.encode("114514"));
     }
 
 }

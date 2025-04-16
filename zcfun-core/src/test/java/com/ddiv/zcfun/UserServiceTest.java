@@ -5,8 +5,10 @@ import com.ddiv.zcfun.domain.po.UserPO;
 import com.ddiv.zcfun.domain.po.UserRole;
 import com.ddiv.zcfun.mapper.UserMapper;
 import com.ddiv.zcfun.service.UserService;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.boot.test.context.SpringBootTest;
 
 import java.util.ArrayList;
@@ -19,6 +21,9 @@ public class UserServiceTest {
     private UserService userService;
     @Autowired
     private UserMapper userMapper;
+    @Qualifier("objectMapper")
+    @Autowired
+    private ObjectMapper objectMapper;
 
     @Test
     public void registerTest() {
@@ -34,7 +39,7 @@ public class UserServiceTest {
         userRoles.add(UserRole.ADMIN);
         userRoles.add(UserRole.USER);
         if (userPO == null) {
-            UserRegisterDTO userRegisterDTO = new UserRegisterDTO("admin", "123456",userRoles);
+            UserRegisterDTO userRegisterDTO = new UserRegisterDTO("admin", "123456", userRoles);
             userService.register(userRegisterDTO);
         }
         userPO = userMapper.findByUserName("admin");
@@ -42,9 +47,8 @@ public class UserServiceTest {
     }
 
     @Test
-    public void GetUserPo() {
+    public void GetUserPO() throws Exception {
         UserPO userPO = userMapper.findByUserName("admin");
         userPO.setRole(userMapper.findUserRoleByUserId(userPO.getUserId()));
-        System.out.println(userPO);
     }
 }

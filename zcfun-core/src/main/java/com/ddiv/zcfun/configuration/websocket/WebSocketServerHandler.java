@@ -6,7 +6,6 @@ import com.ddiv.zcfun.exception.UserOfflineException;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.springframework.amqp.rabbit.core.RabbitTemplate;
-import org.springframework.context.annotation.Bean;
 import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Component;
@@ -42,10 +41,9 @@ public class WebSocketServerHandler implements WebSocketHandler {
      * 将新连接的用户的会话信息存储到在线用户列表中，并将用户ID添加到Redis的在线用户集合中。
      *
      * @param session 表示当前建立的WebSocket会话，包含会话的属性和相关信息。
-     * @throws Exception 如果在处理过程中发生任何异常，将抛出该异常。
      */
     @Override
-    public void afterConnectionEstablished(WebSocketSession session) throws Exception {
+    public void afterConnectionEstablished(WebSocketSession session) {
         // 从会话属性中获取用户ID
         var userId = session.getAttributes().get("user_id");
 
@@ -61,8 +59,6 @@ public class WebSocketServerHandler implements WebSocketHandler {
      * 定时任务，用于检测用户是否在线（心跳机制）。
      * 遍历在线用户列表，获取每个用户的最后活跃时间。
      * 如果用户最后活跃时间超过60秒（心跳超时时间），则认为用户已经离线，关闭WebSocket会话，并清理用户信息。
-     *
-     * @throws Exception 如果在处理过程中发生任何异常，将抛出该异常。
      */
     @Scheduled(fixedRate = HEARTBEAT_INTERVAL)
     public void checkHeartbeat() {
