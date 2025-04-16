@@ -11,6 +11,7 @@ import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
+import java.util.Random;
 import java.util.concurrent.TimeUnit;
 import java.util.stream.Collectors;
 
@@ -272,7 +273,8 @@ public class FriendServiceImpl implements FriendService {
      */
     private void updateFriendshipCache(long smallerId, long largerId, boolean isFriend) {
         String cacheKey = String.format(FRIENDSHIP_CACHE_KEY_FORMAT, smallerId, largerId);
-        redisTemplate.opsForValue().set(cacheKey, isFriend, 1, TimeUnit.HOURS);
+        int randomOffset = new Random().nextInt(600); // 0~10分钟随机偏差
+        redisTemplate.opsForValue().set(cacheKey, isFriend, 1 + randomOffset / 60, TimeUnit.HOURS);
     }
 
     /**
@@ -284,7 +286,8 @@ public class FriendServiceImpl implements FriendService {
      */
     private void updateBlockCache(long userId, long blockedId, boolean isBlocked) {
         String cacheKey = getBlockCacheKey(userId, blockedId);
-        redisTemplate.opsForValue().set(cacheKey, isBlocked, 1, TimeUnit.HOURS);
+        int randomOffset = new Random().nextInt(600); // 0~10分钟随机偏差
+        redisTemplate.opsForValue().set(cacheKey, isBlocked, 1 + randomOffset / 60, TimeUnit.HOURS);
     }
 
     /**

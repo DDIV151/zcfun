@@ -46,7 +46,8 @@ public class UserDetailsServiceImpl implements UserDetailsService {
 
     private UserPO getUserPO(String username) {
         UserPO user = userMapper.findByUserName(username);
-        if (user == null) {
+        if (user == null) { // 用户不存在，设置缓存时间为5分钟(防止穿透)
+            redisTemplate.opsForValue().set("userPO:" + username, "NULL", 5, TimeUnit.MINUTES);
             throw new UsernameNotFoundException(username);
         }
         user.setRole(userMapper.findUserRoleByUserId(user.getUserId()));
