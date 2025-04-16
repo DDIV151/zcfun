@@ -22,7 +22,7 @@ public class WebSocketConfig implements WebSocketConfigurer {
     @Override
     public void registerWebSocketHandlers(WebSocketHandlerRegistry registry) {
         registry//消息(连接)处理器
-                .addHandler(webSocketServerHandler,"/ws/im","/ws/im/send")
+                .addHandler(webSocketServerHandler, "/ws/im", "/ws/im/send")
                 //握手前确认
                 .addInterceptors(authHandshakeInterceptor)
                 //允许跨域
